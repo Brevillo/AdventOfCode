@@ -1,0 +1,14 @@
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/bin/Debug/net7.0/AdventOfCode
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/bin/Debug/net7.0/AdventOfCode.deps.json
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/bin/Debug/net7.0/AdventOfCode.runtimeconfig.json
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/bin/Debug/net7.0/AdventOfCode.dll
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/bin/Debug/net7.0/AdventOfCode.pdb
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/AdventOfCode.GeneratedMSBuildEditorConfig.editorconfig
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/AdventOfCode.AssemblyInfoInputs.cache
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/AdventOfCode.AssemblyInfo.cs
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/AdventOfCode.csproj.CoreCompileInputs.cache
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/AdventOfCode.dll
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/refint/AdventOfCode.dll
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/AdventOfCode.pdb
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/AdventOfCode.genruntimeconfig.cache
+/Users/oliverbeebe/Documents/GitHub/AdventOfCode/AdventOfCode/obj/Debug/net7.0/ref/AdventOfCode.dll
