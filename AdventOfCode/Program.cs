@@ -16,30 +16,51 @@ namespace AdventOfCode {
         }
     }
 
+    public struct Vector2 {
+
+        public int x, y;
+
+        public Vector2(int x, int y) => (this.x, this.y) = (x, y);
+        public Vector2(Vector2 v) => (x, y) = (v.x, v.y);
+
+        public static Vector2 operator +(Vector2 a, Vector2 b) => new(a.x + b.x, a.y + b.y);
+        public static Vector2 operator -(Vector2 a, Vector2 b) => new(a.x - b.x, a.y - b.y);
+        public static Vector2 operator *(Vector2 a, Vector2 b) => new(a.x * b.x, a.y * b.y);
+        public static Vector2 operator /(Vector2 a, Vector2 b) => new(a.x / b.x, a.y / b.y);
+        public static Vector2 operator -(Vector2 v) => new(-v.x, -v.y);
+
+        public override readonly string ToString() => $"({x}, {y})";
+    }
+
     public static class Program {
 
         public static void print(object? msg = null) => Console.Write(msg);
         public static void println(object? msg = null) => Console.WriteLine(msg);
-        public static string read() => Console.ReadLine() ?? "";
+
+        public static bool read(out string oot) => read(null, out oot);
+        public static bool read(string? msg, out string oot) {
+            print(msg);
+            oot = Console.ReadLine() ?? "";
+            return oot != "";
+        }
 
         public static void Main() {
-            println("Start");
+            println("Start\n");
             ChooseProgram();
-            println("End");
+            println("\nEnd");
         }
 
         private static void ChooseProgram() {
 
-            Action? program = read() switch {
+            while (read("Select day: ", out var num)) {
 
-                "1" => Day1,
-                "2" => Day2,
-                "3" => Day3,
+                var day = typeof(Program).GetMethod($"Day{num}");
 
-                _   => null,
-            };
+                if (day == null) println("Invalid Day");
+                else day.Invoke(null, null);
 
-            program?.Invoke();
+                println();
+            }
         }
 
         #region --- Day 1: Trebuchet?! ---
@@ -225,12 +246,98 @@ namespace AdventOfCode {
 
         #endregion
 
-        #region --- Day 3: ?????? ---
+        #region --- Day 3: Gear Ratios ---
 
         private const string day3_input = "Day3_input.txt";
 
+        private readonly struct Number {
+
+            public Number(Vector2[] positions, int value) => (this.positions, this.value) = (positions, value);
+
+            public readonly Vector2[] positions;
+            public readonly int value;
+
+            public override readonly string ToString() => $"{value} : {{ {string.Join(", ", positions)} }}";
+        }
+
         public static void Day3() {
 
+            string[] lines = File.ReadAllText(day3_input).Split("\n");
+
+            var validDeltas = new Vector2[] {
+                new( 0,  1),
+                new( 1,  1),
+                new( 1,  0),
+                new( 1, -1),
+                new( 0, -1),
+                new(-1, -1),
+                new(-1,  0),
+                new(-1,  1),
+            };
+
+            int height = lines.Length,
+                width = lines[0].Length;
+
+            List<Number> numbers = new();
+
+            List<Vector2> activeNumberPositions = null;
+            int activeNumberValue = 0;
+
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+
+                    if (int.TryParse(lines[y][x].ToString(), out int value))
+                        if (activeNumberPositions != null) {
+                            activeNumberPositions.Add(new(x, y));
+                            activeNumberValue *= 10;
+                            activeNumberValue += value;
+                        } else {
+                            activeNumberPositions = new() { new(x, y) };
+                            activeNumberValue = value;
+                        }
+
+                    else if (activeNumberPositions != null) {
+                        numbers.Add(new(activeNumberPositions.ToArray(), activeNumberValue));
+                        activeNumberPositions = null;
+                    }
+
+            List<Number> notMissing = new();
+            Dictionary<Vector2, List<int>> gears = new();
+
+            foreach (var number in numbers) {
+
+                foreach (var point in number.positions) {
+                    foreach (var delta in validDeltas) {
+
+                        Vector2 pos = point + delta;
+                        if (pos.x >= width || pos.x < 0 || pos.y >= height || pos.y < 0) continue;
+
+                        char check = lines[pos.y][pos.x];
+                        if (check != '.' && !char.IsNumber(check)) {
+
+                            notMissing.Add(number);
+
+                            if (check == '*')
+                                if (gears.TryGetValue(pos, out var values)) values.Add(number.value);
+                                else gears.Add(pos, new() { number.value });
+
+                            goto notMissing;
+                        }
+                    }
+                }
+
+                notMissing: continue;
+            }
+
+            int sum = 0;
+            foreach (var num in notMissing) sum += num.value;
+
+            int gearRatioSum = 0;
+            foreach (var gear in gears.Values)
+                if (gear.Count == 2)
+                    gearRatioSum += gear[0] * gear[1];
+
+            println($"part sum: {sum}\ngear ratio sum: {gearRatioSum}");
         }
 
         #endregion
