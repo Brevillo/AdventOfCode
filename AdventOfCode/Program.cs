@@ -344,10 +344,44 @@ namespace AdventOfCode {
 
         #endregion
 
-        #region
+        #region --- Day 4: Scratchcards ---
 
         public static void Day4(string input) {
 
+            string[] lines = input.Split("\n");
+
+            for (int i = 0; i < lines.Length; i++)
+                lines[i] = lines[i][(lines[i].IndexOf(':') + 1)..];
+
+            int[] numCards = new int[lines.Length];
+            Array.Fill(numCards, 1);
+
+            int pointSum = 0;
+            for (int i = 0; i < lines.Length; i++) {
+
+                var sides = lines[i].Split('|');
+                List<int> GetNums(string sequence) {
+                    var nums = new List<string>(sequence.Split(' ')).FindAll(n => n != "");
+                    var ints = nums.ConvertAll(int.Parse);
+                    return ints;
+                }
+                List<int> winning = GetNums(sides[0]),
+                          mine = GetNums(sides[1]);
+
+                int nums = 0;
+
+                foreach (var num in winning)
+                    if (mine.Contains(num)) nums++;
+
+                for (int num = i + 1; num < i + nums + 1; num++)
+                    numCards[num] += numCards[i];
+
+                pointSum += (int)Math.Pow(2, nums - 1);
+            }
+
+            int cardSum = numCards.Sum();
+
+            println($"Total points: {pointSum}\nTotal cards: {cardSum}");
         }
 
         #endregion
