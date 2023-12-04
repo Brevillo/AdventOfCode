@@ -57,7 +57,15 @@ namespace AdventOfCode {
                 var day = typeof(Program).GetMethod($"Day{num}");
 
                 if (day == null) println("Invalid Day");
-                else day.Invoke(null, null);
+                else {
+                    string inputPath = $"Day{num}_input.txt";
+
+                    if (File.Exists(inputPath)) day.Invoke(null, new[] { File.ReadAllText(inputPath) });
+                    else {
+                        File.Create(inputPath);
+                        println($"Input file not found. Generated {inputPath}");
+                    }
+                }
 
                 println();
             }
@@ -65,11 +73,9 @@ namespace AdventOfCode {
 
         #region --- Day 1: Trebuchet?! ---
 
-        private const string day1_input = "Day1_input.txt";
+        public static void Day1(string input) {
 
-        public static void Day1() {
-
-            string[] lines = File.ReadAllText(day1_input).Split('\n');
+            string[] lines = input.Split('\n');
 
             var namedNums = new List<string>() {
                 "zero",
@@ -137,8 +143,6 @@ namespace AdventOfCode {
 
         #region --- Day 2: Cube Conundrum ---
 
-        private const string day2_input = "Day2_input.txt";
-
         private readonly struct Game {
 
             public Game(string line) {
@@ -195,9 +199,9 @@ namespace AdventOfCode {
             public override string ToString() => $"Set: {string.Join(", ", counts.Values)}";
         }
 
-        public static void Day2() {
+        public static void Day2(string input) {
 
-            string[] lines = File.ReadAllText(day2_input).Split('\n');
+            string[] lines = input.Split('\n');
 
             var games = new List<string>(lines).ConvertAll(line => new Game(line));
 
@@ -248,8 +252,6 @@ namespace AdventOfCode {
 
         #region --- Day 3: Gear Ratios ---
 
-        private const string day3_input = "Day3_input.txt";
-
         private readonly struct Number {
 
             public Number(Vector2[] positions, int value) => (this.positions, this.value) = (positions, value);
@@ -260,9 +262,9 @@ namespace AdventOfCode {
             public override readonly string ToString() => $"{value} : {{ {string.Join(", ", positions)} }}";
         }
 
-        public static void Day3() {
+        public static void Day3(string input) {
 
-            string[] lines = File.ReadAllText(day3_input).Split("\n");
+            string[] lines = input.Split("\n");
 
             var validDeltas = new Vector2[] {
                 new( 0,  1),
@@ -338,6 +340,14 @@ namespace AdventOfCode {
                     gearRatioSum += gear[0] * gear[1];
 
             println($"part sum: {sum}\ngear ratio sum: {gearRatioSum}");
+        }
+
+        #endregion
+
+        #region
+
+        public static void Day4(string input) {
+
         }
 
         #endregion
