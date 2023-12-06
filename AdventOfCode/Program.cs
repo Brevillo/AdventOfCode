@@ -7,15 +7,6 @@ using System.Text;
 
 namespace AdventOfCode {
 
-    public static class Util {
-        
-        public static string Replace(this string s, int index, char c) {
-            var sb = new StringBuilder(s);
-            sb[index] = c;
-            return sb.ToString();
-        }
-    }
-
     public struct Vector2 {
 
         public int x, y;
@@ -34,15 +25,25 @@ namespace AdventOfCode {
 
     public static class Program {
 
+        #region Util
+
         public static void print(object? msg = null) => Console.Write(msg);
         public static void println(object? msg = null) => Console.WriteLine(msg);
-
-        public static bool read(out string oot) => read(null, out oot);
         public static bool read(string? msg, out string oot) {
             print(msg);
             oot = Console.ReadLine() ?? "";
             return oot != "";
         }
+        
+        public static string Replace(this string s, int index, char c) {
+            var sb = new StringBuilder(s);
+            sb[index] = c;
+            return sb.ToString();
+        }
+
+        #endregion
+
+        #region Day Selection
 
         public static void Main() {
             println("Start\n");
@@ -56,20 +57,26 @@ namespace AdventOfCode {
 
                 var day = typeof(Program).GetMethod($"Day{num}");
 
-                if (day == null) println("Invalid Day");
-                else {
-                    string inputPath = $"Day{num}_input.txt";
-
-                    if (File.Exists(inputPath)) day.Invoke(null, new[] { File.ReadAllText(inputPath) });
-                    else {
-                        File.Create(inputPath);
-                        println($"Input file not found. Generated {inputPath}");
-                    }
+                if (day == null) {
+                    println("Invalid Day");
+                    continue;
                 }
+
+                string inputPath = $"Day{num}_input.txt";
+
+                if (!File.Exists(inputPath)) {
+                    println($"Input file not found. Generated {inputPath}");
+                    File.Create(inputPath);
+                    continue;
+                }
+
+                day.Invoke(null, new[] { File.ReadAllText(inputPath) });
 
                 println();
             }
         }
+
+        #endregion
 
         #region --- Day 1: Trebuchet?! ---
 
@@ -382,6 +389,127 @@ namespace AdventOfCode {
             int cardSum = numCards.Sum();
 
             println($"Total points: {pointSum}\nTotal cards: {cardSum}");
+        }
+
+        #endregion
+
+        #region --- Day 5: If You Give A Seed A Fertilizer ---
+
+        private readonly struct Map {
+
+            public static Map Build(string line) => new(line);
+
+            private Map(string line) {
+                var nums = Array.ConvertAll(line.Split(" "), long.Parse);
+                end   = nums[0];
+                start = nums[1];
+                range = nums[2];
+            }
+
+            private readonly long end, start, range;
+
+            public readonly bool Try(long input, out long output) {
+                output = input + end - start;
+                return input >= start && input <= start + range;
+            }
+
+            public readonly void ClampRange(ref long min, ref long max) {
+                min = Math.Min(min, start);
+                max = Math.Max(max, end);
+            }
+        }
+
+        public static void Day5(string input) {
+
+            var groups = input.Split("\n\n");
+
+            long[] ranges = new List<string>(groups[0][7..].Split(" ")).ConvertAll(long.Parse).ToArray();
+
+            var mapGroups =
+                new List<string>(groups[1..]) // map groups
+                .ConvertAll(l => new List<string>(l.Split("\n")[1..]) // map data
+                .ConvertAll(Map.Build)); // map struct
+
+            void GetRange(ref long start, ref long end) {
+
+                foreach (var group in mapGroups)
+                    foreach (var map in group)
+                        map.ClampRange(ref start, ref end);
+            }
+
+            long DoMap(long value) {
+
+                foreach (var map in mapGroups[0])
+                    if (map.Try(value, out var o)) {
+                        value = o;
+                        break;
+                    }
+
+                return value;
+            }
+
+            long basicMin = Array.ConvertAll(ranges, DoMap).Min(),
+                 rangeMin = long.MaxValue;
+
+            for (long i = 0; i < ranges.Length; i += 2) {
+
+                long start = 0,
+                     end = long.MaxValue;
+
+                print($"range: {start}, {end} -> ");
+
+                GetRange(ref start, ref end);
+                start = Math.Max(start, ranges[i]);
+                end   = Math.Min(end, ranges[i] + ranges[i + 1]);
+
+                println($"{start}, {end}");
+
+                for (long n = start; n < end; n++)
+                    rangeMin = Math.Min(rangeMin, DoMap(n));
+            }
+
+            println($"basic min: {basicMin}\nrange min: {rangeMin}");
+        }
+
+        #endregion
+
+        #region --- Day 6: Wait For It ---
+
+        public static void Day6(string input) {
+
+            var lines = Array.ConvertAll(input.Split("\n"), line => line[11..].Split(" ", StringSplitOptions.RemoveEmptyEntries));
+
+            long Dist(long time, long dist) {
+
+                long Bound(long sign) {
+                    long result = (long)Math.Floor((-sign * Math.Sqrt(time * time - 4 * dist) - time) / -2d);
+                    if (result * (time - result) - dist == 0 && sign > 0) result++;
+                    return result;
+                }
+
+                return Bound(1) - Bound(-1);
+            }
+
+            long[] GetLongs(int line) => Array.ConvertAll(lines[line], long.Parse);
+            long[] times = GetLongs(0),
+                   dists = GetLongs(1);
+
+            long separate = 1;
+            for (int i = 0; i < times.Length; i++)
+                separate *= Dist(times[i], dists[i]);
+
+            long Total(int line) => long.Parse(string.Concat(lines[line]));
+            long single = Dist(Total(0), Total(1));
+
+            println($"separate product: {separate}\nsingle product: {single}");
+        }
+
+        #endregion
+
+        #region
+
+        public static void Day7(string input) {
+
         }
 
         #endregion
