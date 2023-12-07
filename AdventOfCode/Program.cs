@@ -2,9 +2,6 @@
 
 // https://adventofcode.com/2023
 
-using System;
-using System.Text;
-
 namespace AdventOfCode {
 
     public struct Vector2 {
@@ -36,22 +33,20 @@ namespace AdventOfCode {
         }
         
         public static string Replace(this string s, int index, char c) {
-            var sb = new StringBuilder(s);
+            var sb = s.ToCharArray();
             sb[index] = c;
-            return sb.ToString();
+            return string.Concat(sb);
         }
+
+        public static int Sign(this int i) => i > 0 ? 1 : i < 0 ? -1 : 0;
 
         #endregion
 
         #region Day Selection
 
         public static void Main() {
-            println("Start\n");
-            ChooseProgram();
-            println("\nEnd");
-        }
 
-        private static void ChooseProgram() {
+            println("Start\n");
 
             while (read("Select day: ", out var num)) {
 
@@ -74,6 +69,8 @@ namespace AdventOfCode {
 
                 println();
             }
+
+            println("\nEnd");
         }
 
         #endregion
@@ -506,9 +503,84 @@ namespace AdventOfCode {
 
         #endregion
 
-        #region
+        #region --- Day 7: Camel Cards ---
 
         public static void Day7(string input) {
+
+            var handBids = Array.ConvertAll(input.Split("\n"), line => {
+                var nums = line.Split(" ");
+                return (hand: nums[0], bid: int.Parse(nums[1]));
+            });
+
+            List<char> cards = new() { '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A' };
+
+            List<Func<(int[] counts, int jokers), bool>> types = new() {
+                d => d.counts.Contains(5 - d.jokers) || d.jokers == 5,          // five of a kind
+                d => d.counts.Contains(4 - d.jokers),                           // four of a kind
+                d => d.counts.Length == 2 && d.counts.Contains(3 - d.jokers),   // full house
+                d => d.counts.Contains(3 - d.jokers),                           // three of a kind
+                d => d.counts.Count(c => c == 2) == 2,                          // two pair
+                d => d.counts.Contains(2 - d.jokers),                           // one pair
+                d => true,                                                      // high card
+            };
+
+            int GetSum(bool consideringJokers) {
+
+                int Type(string hand) {
+
+                    Dictionary<char, int> charCounts = new();
+                    int jokers = 0;
+
+                    foreach (var c in hand)
+                        if (consideringJokers && c == 'J') jokers++;
+                        else if (!charCounts.ContainsKey(c)) charCounts.Add(c, 1);
+                        else charCounts[c]++;
+
+                    var counts = charCounts.Values.ToArray();
+
+                    return types.FindIndex(type => type.Invoke((counts, jokers)));
+                }
+
+                int CompareHands((string hand, int bid) hb1, (string hand, int bid) hb2) {
+
+                    int t1 = Type(hb1.hand),
+                        t2 = Type(hb2.hand);
+
+                    if (t1 != t2) return (t1 - t2).Sign();
+
+                    for (int i = 0; i < 5; i++) {
+
+                        char c1 = hb1.hand[i],
+                             c2 = hb2.hand[i];
+
+                        if (c1 == c2) continue;
+
+                        int i1 = consideringJokers && c1 == 'J' ? -1 : cards.IndexOf(c1),
+                            i2 = consideringJokers && c2 == 'J' ? -1 : cards.IndexOf(c2);
+
+                        return (i2 - i1).Sign();
+                    }
+
+                    return 0;
+                }
+
+                Array.Sort(handBids, CompareHands);
+
+                int sum = 0;
+                for (int i = 0; i < handBids.Length; i++)
+                    sum += handBids[i].bid * (handBids.Length - i);
+
+                return sum;
+            }
+
+            println($"no jokers: {GetSum(false)}\nwith jokers: {GetSum(true)}");
+        }
+
+        #endregion
+
+        #region
+
+        public static void Day8(string input) {
 
         }
 
