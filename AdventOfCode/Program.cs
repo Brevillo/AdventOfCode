@@ -17,6 +17,17 @@ namespace AdventOfCode {
         public static Vector2 operator /(Vector2 a, Vector2 b) => new(a.x / b.x, a.y / b.y);
         public static Vector2 operator -(Vector2 v) => new(-v.x, -v.y);
 
+        public static Vector2 operator *(Vector2 v, int f) => new(v.x * f, v.y * f);
+        public static Vector2 operator *(int f, Vector2 v) => new(v.x * f, v.y * f);
+
+        public readonly Vector2 Abs() => new(Math.Abs(x), Math.Abs(y));
+
+        public readonly Vector2 X(int x) => new(x, y);
+        public readonly Vector2 AddX(int x) => new(this.x + x, y);
+
+        public readonly Vector2 Y(int y) => new(x, y);
+        public readonly Vector2 AddY(int y) => new(x, this.y + y);
+
         public override readonly string ToString() => $"({x}, {y})";
     }
 
@@ -39,6 +50,24 @@ namespace AdventOfCode {
         }
 
         public static int Sign(this int i) => i > 0 ? 1 : i < 0 ? -1 : 0;
+
+        public static List<T> Fill<T>(this List<T> list, T value, int length) {
+
+            list = new();
+
+            for (int i = 0; i < length; i++)
+                list.Add(value);
+
+            return list;
+        }
+
+        public static T[] Fill<T>(this T[] array, T value) {
+
+            for (int i = 0; i < array.Length; i++)
+                array[i] = value;
+
+            return array;
+        }
 
         #endregion
 
@@ -578,10 +607,101 @@ namespace AdventOfCode {
 
         #endregion
 
-        #region
+        #region --- Day 8: Haunted Wasteland ---
 
         public static void Day8(string input) {
 
+            var data = input.Split("\n\n");
+            var sequence = Array.ConvertAll(data[0].ToCharArray(), c => c == 'L' ? 0 : 1);
+            var lines = data[1].Split("\n");
+
+            var keys = new List<string>(lines).ConvertAll(l => l[0..3]);
+
+            var nodes = new int[keys.Count * 2];
+            for (int i = 0; i < keys.Count; i++) {
+                var line = lines[i];
+                nodes[i * 2] = keys.IndexOf(line[7..10]);
+                nodes[i * 2 + 1] = keys.IndexOf(line[12..15]);
+            }
+
+            void Iterate(ref int node, int steps) => node = nodes[node * 2 + sequence[steps % sequence.Length]];
+
+            int node = keys.IndexOf("AAA"),
+                goal = keys.IndexOf("ZZZ");
+            int steps = 0;
+
+            while (node != goal)
+                Iterate(ref node, steps++);
+
+            int ghostSteps = 0;
+            int[] ghostNodes = keys.FindAll(k => k[2] == 'A').ConvertAll(keys.IndexOf).ToArray();
+
+            while (ghostNodes.ToList().Exists(n => keys[n][2] != 'Z')) {
+
+                for (int i = 0; i < ghostNodes.Length; i++)
+                    Iterate(ref ghostNodes[i], ghostSteps);
+
+                ghostSteps++;
+
+                println(ghostSteps);
+            }
+
+            println($"non ghost steps: {steps}\nghost steps: {ghostSteps}");
+        }
+
+        #endregion
+
+        #region --- Day 11: Cosmic Expansion ---
+
+        public static void Day11(string input) {
+
+            var points = input.Split("\n");
+
+            int[] GetNoGalaxyIndeces(IEnumerable<(string line, int index)> entries) => entries
+                .Where(entry => !entry.line.Contains('#'))
+                .Select(entry => entry.index)
+                .ToArray();
+
+            int[] emptyCols = GetNoGalaxyIndeces(points.Select((row, index) => (string.Concat(points.Select(row => row[index])), index))),
+                  emptyRows = GetNoGalaxyIndeces(points.Select((line, index) => (line, index)));
+
+            var ogGalaxies = points
+                .Select((string line, int index) => line
+                    .Select((char c, int index) => (c, index))
+                    .Where(entry => entry.c == '#')
+                    .Select(entry => ((long)entry.index, (long)index)))
+                .SelectMany(c => c)
+                .ToArray();
+
+            println($"single spread sum: {Sum(2)}\nmillion spread sum: {Sum(1000000)}");
+
+            long Sum(long multiple) {
+
+                // expand galaxy
+                var galaxies = ((long, long)[])ogGalaxies.Clone();
+
+                for (int i = 0; i < galaxies.Length; i++) {
+
+                    (long x, long y) = galaxies[i];
+
+                    galaxies[i] = (
+                        x + emptyCols.Where(col => x > col).Count() * (multiple - 1),
+                        y + emptyRows.Where(row => y > row).Count() * (multiple - 1));
+                }
+
+                // sum distances
+                long sum = 0;
+                for (int start = 0; start < galaxies.Length; start++)
+                    for (int end = start + 1; end < galaxies.Length; end++) {
+
+                        (long x1, long y1) = galaxies[start];
+                        (long x2, long y2) = galaxies[end];
+
+                        sum += Math.Abs(x2 - x1) + Math.Abs(y2 - y1);
+                    }
+
+                return sum;
+            }
         }
 
         #endregion
